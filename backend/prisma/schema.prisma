@@ -1,0 +1,196 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Batch {
+  id                  String   @id @default(cuid())
+  externalId          String?  @unique
+  location            String   @default("USA")
+  metadata            Json     @default("{}")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  imageAssets         ImageAsset[]
+  textInventoryEntries TextInventoryEntry[]
+  inventoryNormalized InventoryNormalized[]
+  pipelineRuns        PipelineRun[]
+  metalEstimate       MetalEstimate?
+  priceSnapshot       PriceSnapshot?
+  extractionPlan      ExtractionPlan?
+  investorReport      InvestorReport?
+
+  @@index([createdAt])
+  @@index([location])
+}
+
+model ImageAsset {
+  id            String   @id @default(cuid())
+  batchId       String
+  batch         Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  filename      String
+  s3Key         String   @unique
+  mimeType      String
+  size          Int
+  uploadedAt    DateTime @default(now())
+  detectionResult DetectionResult?
+
+  @@index([batchId])
+}
+
+model DetectionResult {
+  id              String   @id @default(cuid())
+  imageAssetId    String   @unique
+  imageAsset      ImageAsset @relation(fields: [imageAssetId], references: [id], onDelete: Cascade)
+  
+  // Detection output
+  rawBoxes        Json     // Array of { x, y, width, height, confidence, label }
+  summaryLabels   Json     // Array of { label, count }
+  modelVersion    String
+  detectedAt      DateTime @default(now())
+
+  @@index([imageAssetId])
+}
+
+model TextInventoryEntry {
+  id            String   @id @default(cuid())
+  batchId       String
+  batch         Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  rawText       String
+  submittedAt   DateTime @default(now())
+
+  @@index([batchId])
+}
+
+model InventoryNormalized {
+  id              String   @id @default(cuid())
+  batchId         String
+  batch           Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  
+  // Normalized inventory item
+  rawLabel        String
+  normalizedType  String   // "laptop" | "smartphone" | "pcb" | "battery" | "cable" | "other"
+  manufacturer    String?
+  model           String?
+  quantity        Int
+  unit            String   // "count" | "kg" | "tons"
+  confidence      String   // "high" | "medium" | "low"
+  
+  normalizedAt    DateTime @default(now())
+
+  @@index([batchId])
+  @@index([normalizedType])
+}
+
+model MetalEstimate {
+  id              String   @id @default(cuid())
+  batchId         String   @unique
+  batch           Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  
+  // Gemini Agent #1 output (validated with Zod)
+  composition     Json     // Record<metalName, { grams: number; confidence: string }>
+  aggregateTotalsKg Json   // Record<metalName, number>
+  uncertainty     Json     // Record<metalName, "low" | "medium" | "high">
+  citations       Json     // Array of Citation
+  
+  generatedAt     DateTime @default(now())
+  promptHash      String?
+  modelUsed       String?
+
+  @@index([batchId])
+}
+
+model PriceSnapshot {
+  id              String   @id @default(cuid())
+  batchId         String   @unique
+  batch           Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  
+  // Gemini Agent #2 output (validated with Zod)
+  timestampUtc    DateTime
+  currency        String   @default("USD")
+  pricesPerKg     Json     // Record<metalName, number>
+  totalGrossValueUsd Float
+  sources         Json     // Array of Citation / source info
+  
+  generatedAt     DateTime @default(now())
+  promptHash      String?
+  modelUsed       String?
+
+  @@index([batchId])
+}
+
+model ExtractionPlan {
+  id              String   @id @default(cuid())
+  batchId         String   @unique
+  batch           Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  
+  // Gemini Agent #3 output (validated with Zod)
+  recommendedProcesses Json  // Array of process recommendation
+  totalCostUsd    Float
+  capexUsd        Float
+  opexUsd         Float
+  logisticsCostUsd Float
+  timeline        Json     // phase timeline
+  risks           Json     // Array of risk assessment
+  sensitivity     Json     // best/base/worst case
+  netProfitUsd    Float
+  citations       Json     // Array of Citation
+  
+  generatedAt     DateTime @default(now())
+  promptHash      String?
+  modelUsed       String?
+
+  @@index([batchId])
+}
+
+model InvestorReport {
+  id              String   @id @default(cuid())
+  batchId         String   @unique
+  batch           Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  
+  // Final investor-ready report
+  reportJson      Json     // Validated InvestorReport shape
+  
+  generatedAt     DateTime @default(now())
+
+  @@index([batchId])
+}
+
+model PipelineRun {
+  id              String   @id @default(cuid())
+  batchId         String
+  batch           Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  
+  // Step-by-step execution tracking
+  currentStep     String   // DETECTING | PARSING_TEXT_INVENTORY | NORMALIZING_INVENTORY | ESTIMATING_METALS | PRICING_METALS | PLANNING_EXTRACTION | GENERATING_REPORT | DONE
+  status          String   // "pending" | "in_progress" | "completed" | "failed"
+  
+  stepResults     Json     @default("{}")  // { [stepName]: { status, output, error, duration, timestamp } }
+  errors          Json     @default("[]")  // Array of error logs
+  
+  startedAt       DateTime @default(now())
+  completedAt     DateTime?
+  
+  modelVersions   Json     // { detector, gemini, etc }
+  
+  @@index([batchId])
+  @@index([currentStep])
+  @@index([status])
+}
+
+model AuditLog {
+  id              String   @id @default(cuid())
+  action          String
+  details         Json
+  createdAt       DateTime @default(now())
+
+  @@index([action])
+  @@index([createdAt])
+}
