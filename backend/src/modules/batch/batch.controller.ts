@@ -7,10 +7,12 @@ import {
   HttpException,
   HttpStatus,
   Logger,
+  Inject,
 } from '@nestjs/common';
 import { BatchService } from '@/services/batch.service';
 import { PipelineService } from '@/services/pipeline.service';
 import { StorageFactory } from '@/config/storage.config';
+import { AppConfigService } from '@/config/app.config';
 import {
   CreateBatchRequest,
   CreateBatchResponse,
@@ -23,12 +25,16 @@ import {
 @Controller('api/batches')
 export class BatchController {
   private readonly logger = new Logger(BatchController.name);
-  private storageService = new StorageFactory(null as any).create();
+  private storageService: any;
 
   constructor(
     private batchService: BatchService,
-    private pipelineService: PipelineService
-  ) {}
+    private pipelineService: PipelineService,
+    private config: AppConfigService,
+  ) {
+    // Lazy-initialize storage service after config is available
+    this.storageService = new StorageFactory(this.config).create();
+  }
 
   private errorResponse(
     code: string,

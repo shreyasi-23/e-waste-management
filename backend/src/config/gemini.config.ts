@@ -18,9 +18,15 @@ export class GeminiService {
   private model: string;
 
   constructor(private config: AppConfigService) {
-    this.client = new GoogleGenerativeAI(this.config.geminiApiKey);
-    this.model = this.config.geminiModel;
-  }
+  const apiKey = process.env.GEMINI_API_KEY || this.config?.geminiApiKey;
+  if (!apiKey) throw new Error('Missing GEMINI_API_KEY');
+
+  this.client = new GoogleGenerativeAI(apiKey);
+
+  this.model =
+    process.env.GEMINI_MODEL || this.config?.geminiModel || 'gemini-1.5-pro';
+}
+
 
   async generateJson<T>(
     prompt: string,
