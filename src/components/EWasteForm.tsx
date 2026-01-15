@@ -23,20 +23,18 @@ const eWasteTypes = [
 ];
 
 const conditionOptions = [
-  'Working',
-  'Partially Working',
-  'Not Working',
-  'For Parts',
-  'Unknown'
+  'Whole',
+  'Parts'
 ];
 
 function EWasteForm({ onSubmit, isAnalyzing }: EWasteFormProps) {
   const [formData, setFormData] = useState<EWasteData>({
     images: [],
     type: '',
-    quantity: 1,
+    quantity: 0,
     weight: 0,
     condition: '',
+    parts: '',
     additionalInfo: ''
   });
 
@@ -59,13 +57,16 @@ function EWasteForm({ onSubmit, isAnalyzing }: EWasteFormProps) {
     onSubmit(formData);
   };
 
-  const isFormValid = formData.type && formData.quantity > 0 && formData.condition;
+  const hasImages = formData.images.length > 0;
+  const hasRequiredFields = formData.type && formData.condition && (formData.quantity > 0 || formData.weight > 0) &&
+    (formData.condition !== 'Parts' || (formData.parts && formData.parts.trim() !== ''));
+  const isFormValid = hasImages || hasRequiredFields;
 
   return (
     <div className="ewaste-form-container">
       <div className="form-header">
         <h2>E-Waste Assessment</h2>
-        <p>Enter details about the e-waste to estimate its economic value</p>
+        <p>Provide images or enter details about your e-waste for valuation analysis</p>
       </div>
 
       <form onSubmit={handleSubmit} className="ewaste-form">
@@ -74,17 +75,25 @@ function EWasteForm({ onSubmit, isAnalyzing }: EWasteFormProps) {
           onImagesChange={handleImageChange}
         />
 
+        {hasImages && !hasRequiredFields && (
+          <div className="info-banner">
+            <svg className="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p>For more accurate analysis, please provide additional details below. Image analysis alone may not be 100% accurate.</p>
+          </div>
+        )}
+
         <div className="form-row">
           <div className="form-group">
             <label htmlFor="type">
-              Type of E-Waste <span className="required">*</span>
+              Type of E-Waste {!hasImages && <span className="required">*</span>}
             </label>
             <select
               id="type"
               name="type"
               value={formData.type}
               onChange={handleInputChange}
-              required
               className="form-select"
             >
               <option value="">Select type...</option>
@@ -96,14 +105,13 @@ function EWasteForm({ onSubmit, isAnalyzing }: EWasteFormProps) {
 
           <div className="form-group">
             <label htmlFor="condition">
-              Condition <span className="required">*</span>
+              Condition {!hasImages && <span className="required">*</span>}
             </label>
             <select
               id="condition"
               name="condition"
               value={formData.condition}
               onChange={handleInputChange}
-              required
               className="form-select"
             >
               <option value="">Select condition...</option>
@@ -114,19 +122,36 @@ function EWasteForm({ onSubmit, isAnalyzing }: EWasteFormProps) {
           </div>
         </div>
 
+        {formData.condition === 'Parts' && (
+          <div className="form-group">
+            <label htmlFor="parts">
+              Specify Parts {!hasImages && <span className="required">*</span>}
+            </label>
+            <input
+              type="text"
+              id="parts"
+              name="parts"
+              value={formData.parts || ''}
+              onChange={handleInputChange}
+              placeholder="e.g., RAM, hard drive, motherboard, screen"
+              className="form-input"
+            />
+          </div>
+        )}
+
         <div className="form-row">
           <div className="form-group">
             <label htmlFor="quantity">
-              Quantity (units) <span className="required">*</span>
+              Quantity (units)
             </label>
             <input
               type="number"
               id="quantity"
               name="quantity"
-              value={formData.quantity}
+              value={formData.quantity || ''}
               onChange={handleInputChange}
-              min="1"
-              required
+              min="0"
+              placeholder="Optional"
               className="form-input"
             />
           </div>
@@ -148,6 +173,7 @@ function EWasteForm({ onSubmit, isAnalyzing }: EWasteFormProps) {
             />
           </div>
         </div>
+        {!hasImages && <p className="form-note">* Quantity or weight required when submitting without images</p>}
 
         <div className="form-group">
           <label htmlFor="additionalInfo">

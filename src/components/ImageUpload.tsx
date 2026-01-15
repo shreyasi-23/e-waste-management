@@ -65,7 +65,7 @@ function ImageUpload({ images, onImagesChange }: ImageUploadProps) {
   return (
     <div className="image-upload-section">
       <label className="section-label">E-Waste Images</label>
-      <p className="section-description">Upload images of the e-waste for better analysis</p>
+      <p className="section-description">Upload images for better analysis (optional if details are provided)</p>
 
       <div
         className="dropzone"

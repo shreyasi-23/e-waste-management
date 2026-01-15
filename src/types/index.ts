@@ -4,6 +4,7 @@ export interface EWasteData {
   quantity: number;
   weight: number;
   condition: string;
+  parts?: string;
   additionalInfo: string;
 }
 
