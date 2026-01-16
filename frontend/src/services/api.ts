@@ -1,4 +1,4 @@
-import type { EWasteData, AnalysisResult } from '../types';
+import type { EWasteData, AnalysisResult, RecyclingCenter } from '../types';
 
 const API_BASE_URL = 'http://localhost:3001/api';
 
@@ -40,6 +40,29 @@ export async function analyzeEWaste(data: EWasteData): Promise<AnalysisResult> {
 
   if (!response.ok) {
     throw new Error('Failed to analyze e-waste data');
+  }
+
+  return response.json();
+}
+
+export async function getNearbyRecyclers(
+  lat: number,
+  lng: number,
+  radius?: number,
+  ewasteType?: string
+): Promise<RecyclingCenter[]> {
+  const params = new URLSearchParams({
+    lat: lat.toString(),
+    lng: lng.toString(),
+  });
+
+  if (radius) params.append('radius', radius.toString());
+  if (ewasteType) params.append('type', ewasteType);
+
+  const response = await fetch(`${API_BASE_URL}/recyclers/nearby?${params}`);
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch nearby recyclers');
   }
 
   return response.json();

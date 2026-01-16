@@ -2,10 +2,14 @@ import { useState } from 'react'
 import './App.css'
 import EWasteForm from './components/EWasteForm'
 import Results from './components/Results'
+import RecyclerFinder from './components/RecyclerFinder'
 import type { EWasteData, AnalysisResult } from './types'
 import { analyzeEWaste } from './services/api'
 
+type TabType = 'analyze' | 'find-recyclers'
+
 function App() {
+  const [activeTab, setActiveTab] = useState<TabType>('analyze')
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
 
@@ -40,11 +44,30 @@ function App() {
         </div>
       </header>
 
+      <nav className="app-nav">
+        <button
+          className={`nav-tab ${activeTab === 'analyze' ? 'active' : ''}`}
+          onClick={() => setActiveTab('analyze')}
+        >
+          Analyze E-Waste
+        </button>
+        <button
+          className={`nav-tab ${activeTab === 'find-recyclers' ? 'active' : ''}`}
+          onClick={() => setActiveTab('find-recyclers')}
+        >
+          Find Recyclers
+        </button>
+      </nav>
+
       <main className="app-main">
-        {!analysisResult ? (
-          <EWasteForm onSubmit={handleFormSubmit} isAnalyzing={isAnalyzing} />
+        {activeTab === 'analyze' ? (
+          !analysisResult ? (
+            <EWasteForm onSubmit={handleFormSubmit} isAnalyzing={isAnalyzing} />
+          ) : (
+            <Results result={analysisResult} onNewAnalysis={handleNewAnalysis} />
+          )
         ) : (
-          <Results result={analysisResult} onNewAnalysis={handleNewAnalysis} />
+          <RecyclerFinder />
         )}
       </main>
 
