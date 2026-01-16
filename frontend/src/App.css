@@ -51,10 +51,47 @@
   font-weight: 300;
 }
 
+.app-nav {
+  position: fixed;
+  top: 140px;
+  left: 0;
+  right: 0;
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 0;
+}
+
+.nav-tab {
+  padding: 1rem 2rem;
+  border: none;
+  background: transparent;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 3px solid transparent;
+}
+
+.nav-tab:hover {
+  color: #2c3e50;
+  background: #f5f5f5;
+}
+
+.nav-tab.active {
+  color: #4CAF50;
+  border-bottom-color: #4CAF50;
+  background: #f0fdf4;
+}
+
 .app-main {
   flex: 1;
   padding: 3rem 1rem;
-  padding-top: 200px;
+  padding-top: 220px;
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
@@ -91,8 +128,17 @@
     height: 36px;
   }
 
+  .app-nav {
+    top: 110px;
+  }
+
+  .nav-tab {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+
   .app-main {
     padding: 2rem 1rem;
-    padding-top: 120px;
+    padding-top: 180px;
   }
 }

@@ -1,11 +1,20 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { GoogleGenAI } from '@google/genai';
+import type { EWasteRequestBody, AnalysisResult, ErrorResponse } from '../types/index.js';
 
 const router = express.Router();
 
-router.post('/', async (req, res) => {
+interface GeminiContent {
+  inlineData?: {
+    mimeType: string;
+    data: string;
+  };
+  text?: string;
+}
+
+router.post('/', async (req: Request<object, AnalysisResult | ErrorResponse, EWasteRequestBody>, res: Response) => {
   try {
-    const { ewasteData } = req.body;
+    const { ewasteData, images = [] } = req.body;
 
     // Initialize inside handler to ensure env vars are loaded
     const genAI = new GoogleGenAI({});
@@ -39,10 +48,9 @@ You MUST respond with ONLY a valid JSON object (no markdown, no code blocks) in 
 Provide at least 2-3 opportunity categories with realistic dollar value estimates based on current market rates.`;
 
     // Build contents array with images (if provided) and prompt
-    const contents = [];
-    const images = req.body.images || [];
+    const contents: GeminiContent[] = [];
 
-    images.forEach((image) => {
+    images.forEach((image: string) => {
       contents.push({
         inlineData: {
           mimeType: 'image/jpeg',
@@ -57,7 +65,11 @@ Provide at least 2-3 opportunity categories with realistic dollar value estimate
       model: "gemini-2.5-flash",
       contents: contents,
     });
-    const text = response.text;
+    const text = response.text ?? '';
+
+    if (!text) {
+      throw new Error('No response received from Gemini API');
+    }
 
     // Clean up the response - remove markdown code blocks if present
     let cleanedText = text;
@@ -68,17 +80,18 @@ Provide at least 2-3 opportunity categories with realistic dollar value estimate
     }
 
     // Parse the JSON response from Gemini
-    const analysisResult = JSON.parse(cleanedText.trim());
+    const analysisResult: AnalysisResult = JSON.parse(cleanedText.trim());
 
     res.json(analysisResult);
   } catch (error) {
-    console.error('Gemini API error:', error.message || error);
+    const err = error as Error;
+    console.error('Gemini API error:', err.message || error);
 
     // Check for rate limit errors
-    if (error.message && error.message.includes('429')) {
+    if (err.message && err.message.includes('429')) {
       res.status(429).json({ error: 'API rate limit exceeded. Please wait a moment and try again.' });
     } else {
-      res.status(500).json({ error: 'Failed to analyze e-waste data', details: error.message });
+      res.status(500).json({ error: 'Failed to analyze e-waste data', details: err.message });
     }
   }
 });

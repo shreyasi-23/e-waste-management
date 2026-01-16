@@ -22,3 +22,20 @@ export interface AnalysisResult {
   summary: string;
   environmentalImpact: string;
 }
+
+export interface RecyclingCenter {
+  id: string;
+  name: string;
+  address: string;
+  location: {
+    lat: number;
+    lng: number;
+  };
+  phone?: string;
+  website?: string;
+  acceptedTypes: string[]; // e.g., ['Batteries', 'Computers', 'Phones']
+  hours?: string;
+  distance?: number; // in miles/km from user
+  rating?: number;
+  isOpen?: boolean;
+}
