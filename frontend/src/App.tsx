@@ -3,62 +3,23 @@ import './App.css'
 import EWasteForm from './components/EWasteForm'
 import Results from './components/Results'
 import type { EWasteData, AnalysisResult } from './types'
+import { analyzeEWaste } from './services/api'
 
 function App() {
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
 
-  const handleFormSubmit = async (_data: EWasteData) => {
+  const handleFormSubmit = async (data: EWasteData) => {
     setIsAnalyzing(true)
 
-    // Simulate API call - Replace this with actual Gemini API integration
-    // In real implementation, you would send 'data' to the Gemini API here
-    await new Promise(resolve => setTimeout(resolve, 2000))
-
-    // Mock result for demonstration
-    const mockResult: AnalysisResult = {
-      totalEstimatedValue: "$450 - $850",
-      summary: "The analyzed e-waste shows significant economic potential through material recovery and refurbishment opportunities.",
-      environmentalImpact: "Proper recycling can prevent 125kg of CO2 emissions and recover valuable materials.",
-      opportunities: [
-        {
-          category: "Precious Metals Recovery",
-          estimatedValue: "$200 - $350",
-          materials: ["Gold", "Silver", "Copper", "Palladium"],
-          recyclingPotential: "High potential for precious metal extraction from circuit boards and connectors.",
-          recommendations: [
-            "Partner with certified e-waste recyclers specializing in precious metal recovery",
-            "Consider bulk processing for better extraction rates",
-            "Separate high-value components before processing"
-          ]
-        },
-        {
-          category: "Component Refurbishment",
-          estimatedValue: "$150 - $300",
-          materials: ["RAM", "Storage Drives", "Processors", "Power Supplies"],
-          recyclingPotential: "Working components can be tested, cleaned, and resold in secondary markets.",
-          recommendations: [
-            "Test all components for functionality",
-            "Partner with refurbishment facilities",
-            "Explore markets for refurbished electronics"
-          ]
-        },
-        {
-          category: "Base Materials",
-          estimatedValue: "$100 - $200",
-          materials: ["Aluminum", "Steel", "Plastic", "Glass"],
-          recyclingPotential: "Bulk materials can be recycled through standard metal and plastic recycling streams.",
-          recommendations: [
-            "Sort materials by type for better recycling rates",
-            "Partner with local metal recyclers",
-            "Explore plastic recycling programs"
-          ]
-        }
-      ]
+    try {
+      const result = await analyzeEWaste(data)
+      setAnalysisResult(result)
+    } catch (error) {
+      console.error('Failed to analyze e-waste:', error)
+    } finally {
+      setIsAnalyzing(false)
     }
-
-    setAnalysisResult(mockResult)
-    setIsAnalyzing(false)
   }
 
   const handleNewAnalysis = () => {
