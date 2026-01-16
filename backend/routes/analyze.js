@@ -39,7 +39,7 @@ You MUST respond with ONLY a valid JSON object (no markdown, no code blocks) in 
 Provide at least 2-3 opportunity categories with realistic dollar value estimates based on current market rates.`;
 
     const response = await genAI.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash",
       contents: prompt,
     });
     const text = response.text;
