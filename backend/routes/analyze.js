@@ -8,7 +8,7 @@ router.post('/', async (req, res) => {
     const { ewasteData } = req.body;
 
     // Initialize inside handler to ensure env vars are loaded
-    const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    const genAI = new GoogleGenAI({});
 
     const prompt = `You are an e-waste valuation expert. Analyze the following e-waste data from a landfill and provide a detailed economic analysis.
 
@@ -38,9 +38,24 @@ You MUST respond with ONLY a valid JSON object (no markdown, no code blocks) in 
 
 Provide at least 2-3 opportunity categories with realistic dollar value estimates based on current market rates.`;
 
+    // Build contents array with images (if provided) and prompt
+    const contents = [];
+    const images = req.body.images || [];
+
+    images.forEach((image) => {
+      contents.push({
+        inlineData: {
+          mimeType: 'image/jpeg',
+          data: image,
+        },
+      });
+    });
+    contents.push({ text: prompt });
+
+    // Call Gemini API to generate analysis
     const response = await genAI.models.generateContent({
       model: "gemini-2.5-flash",
-      contents: prompt,
+      contents: contents,
     });
     const text = response.text;
 
