@@ -13,7 +13,7 @@
   z-index: 1000;
   background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
   color: white;
-  padding: 2rem 1rem;
+  padding: 1rem 1rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
@@ -32,20 +32,20 @@
 }
 
 .logo-icon {
-  width: 48px;
-  height: 48px;
+  width: 36px;
+  height: 36px;
   color: #4CAF50;
 }
 
 .app-header h1 {
-  font-size: 2.5rem;
+  font-size: 1.75rem;
   margin: 0;
   font-weight: 700;
   color: white;
 }
 
 .tagline {
-  font-size: 1.125rem;
+  font-size: 0.95rem;
   margin: 0;
   color: rgba(255, 255, 255, 0.9);
   font-weight: 300;
@@ -53,7 +53,7 @@
 
 .app-nav {
   position: fixed;
-  top: 140px;
+  top: 103px;
   left: 0;
   right: 0;
   z-index: 999;
@@ -91,7 +91,7 @@
 .app-main {
   flex: 1;
   padding: 3rem 1rem;
-  padding-top: 220px;
+  padding-top: 200px;
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
@@ -112,24 +112,24 @@
 
 @media (max-width: 768px) {
   .app-header {
-    padding: 1.5rem 1rem;
+    padding: 0.75rem 1rem;
   }
 
   .app-header h1 {
-    font-size: 1.75rem;
+    font-size: 1.25rem;
   }
 
   .tagline {
-    font-size: 1rem;
+    font-size: 0.85rem;
   }
 
   .logo-icon {
-    width: 36px;
-    height: 36px;
+    width: 28px;
+    height: 28px;
   }
 
   .app-nav {
-    top: 110px;
+    top: 70px;
   }
 
   .nav-tab {
@@ -139,6 +139,6 @@
 
   .app-main {
     padding: 2rem 1rem;
-    padding-top: 180px;
+    padding-top: 130px;
   }
 }
